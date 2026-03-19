@@ -5,12 +5,12 @@ let mainWindow;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 200,
-    height: 200,
+    width: 180,
+    height: 220,
     frame: false,
     transparent: true,
     alwaysOnTop: true,
-    resizable: false,
+    resizable: true,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
