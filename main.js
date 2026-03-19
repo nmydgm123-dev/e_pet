@@ -26,6 +26,7 @@ function createWindow() {
 
   mainWindow.loadFile('index.html');
   mainWindow.setAlwaysOnTop(true, 'floating');
+  mainWindow.setIgnoreMouseEvents(true, { forward: true });
 
   mainWindow.on('close', () => {
     if (mainWindow && !mainWindow.isDestroyed()) {
@@ -45,5 +46,11 @@ app.on('window-all-closed', () => {
 app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
+  }
+});
+
+ipcMain.on('set-ignore-mouse', (event, ignore) => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.setIgnoreMouseEvents(ignore, { forward: true });
   }
 });

@@ -16,8 +16,68 @@ let statusTimeout = null;
 let isDragging = false;
 let dragOffsetX = 0;
 let dragOffsetY = 0;
+let isMouseInPetArea = false;
+
+function setWindowIgnoreMouse(ignore) {
+  if (window.electronAPI && window.electronAPI.setIgnoreMouse) {
+    window.electronAPI.setIgnoreMouse(ignore);
+  }
+}
+
+canvas.addEventListener('mouseenter', () => {
+  isMouseInPetArea = true;
+  setWindowIgnoreMouse(false);
+});
+
+canvas.addEventListener('mouseleave', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  
+  const distance = Math.sqrt(
+    Math.pow(x - pet.x, 2) + Math.pow(y - pet.y, 2)
+  );
+  
+  if (distance >= pet.size + 15) {
+    isMouseInPetArea = false;
+    isDragging = false;
+    setWindowIgnoreMouse(true);
+    canvas.style.cursor = 'default';
+  }
+});
+
+canvas.addEventListener('mousemove', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  
+  const distance = Math.sqrt(
+    Math.pow(x - pet.x, 2) + Math.pow(y - pet.y, 2)
+  );
+  
+  if (distance >= pet.size + 15) {
+    isMouseInPetArea = false;
+    setWindowIgnoreMouse(true);
+    canvas.style.cursor = 'default';
+    return;
+  }
+  
+  isMouseInPetArea = true;
+  setWindowIgnoreMouse(false);
+  
+  if (isDragging) {
+    const canvasRect = canvas.getBoundingClientRect();
+    pet.x = x;
+    pet.y = y;
+    canvas.style.cursor = 'grabbing';
+  } else {
+    canvas.style.cursor = distance < pet.size + 15 ? 'pointer' : 'default';
+  }
+});
 
 canvas.addEventListener('mousedown', (e) => {
+  if (!isMouseInPetArea) return;
+  
   const rect = canvas.getBoundingClientRect();
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
@@ -28,45 +88,19 @@ canvas.addEventListener('mousedown', (e) => {
   
   if (distance < pet.size + 15) {
     isDragging = true;
-    dragOffsetX = x - pet.x;
-    dragOffsetY = y - pet.y;
     canvas.style.cursor = 'grabbing';
   }
 });
 
-canvas.addEventListener('mousemove', (e) => {
+canvas.addEventListener('mouseup', () => {
   if (isDragging) {
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    pet.x = Math.max(pet.size, Math.min(canvas.width - pet.size, x - dragOffsetX));
-    pet.y = Math.max(pet.size, Math.min(canvas.height - pet.size - 60, y - dragOffsetY));
-  } else {
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    const distance = Math.sqrt(
-      Math.pow(x - pet.x, 2) + Math.pow(y - pet.y, 2)
-    );
-    
-    canvas.style.cursor = distance < pet.size + 15 ? 'pointer' : 'default';
+    isDragging = false;
+    canvas.style.cursor = 'default';
   }
 });
 
-canvas.addEventListener('mouseup', () => {
-  isDragging = false;
-  canvas.style.cursor = 'default';
-});
-
-canvas.addEventListener('mouseleave', () => {
-  isDragging = false;
-  canvas.style.cursor = 'default';
-});
-
 canvas.addEventListener('click', (e) => {
-  if (isDragging) return;
+  if (!isMouseInPetArea || isDragging) return;
   
   const rect = canvas.getBoundingClientRect();
   const x = e.clientX - rect.left;
@@ -95,6 +129,8 @@ canvas.addEventListener('click', (e) => {
     }, 4000);
   }
 });
+
+setWindowIgnoreMouse(true);
 
 function gameLoop() {
   pet.update();
