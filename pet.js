@@ -63,6 +63,12 @@ class Pet {
     this.ctx.beginPath();
     this.ctx.arc(this.x + eyeOffset, this.y + 5, 5, 0, Math.PI);
     this.ctx.stroke();
+
+    // 状态显示
+    this.ctx.fillStyle = '#000';
+    this.ctx.font = '12px Arial';
+    this.ctx.fillText(`饥饿: ${Math.round(this.hunger)}`, 10, 20);
+    this.ctx.fillText(`心情: ${Math.round(this.mood)}`, 10, 35);
   }
 
   feed() {
