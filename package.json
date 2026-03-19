@@ -1,0 +1,12 @@
+{
+  "name": "e_pet",
+  "version": "1.0.0",
+  "description": "Mac 桌面电子宠物",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^28.0.0"
+  }
+}
