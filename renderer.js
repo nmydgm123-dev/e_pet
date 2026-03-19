@@ -30,4 +30,38 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
+function saveState() {
+  const state = {
+    x: pet.x,
+    hunger: pet.hunger,
+    mood: pet.mood,
+    state: pet.state
+  };
+  localStorage.setItem('petState', JSON.stringify(state));
+}
+
+function loadState() {
+  const saved = localStorage.getItem('petState');
+  if (saved) {
+    try {
+      const state = JSON.parse(saved);
+      pet.x = state.x || pet.x;
+      pet.hunger = state.hunger || pet.hunger;
+      pet.mood = state.mood || pet.mood;
+      pet.state = state.state || pet.state;
+    } catch (e) {
+      console.error('Failed to load state:', e);
+    }
+  }
+}
+
+// 启动时加载状态
+loadState();
+
+// 定时保存状态
+setInterval(saveState, 30000);
+
+// 关闭前保存
+window.addEventListener('beforeunload', saveState);
+
 gameLoop();
