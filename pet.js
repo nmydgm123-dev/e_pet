@@ -3,8 +3,8 @@ class Pet {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
     this.x = canvas.width / 2;
-    this.y = canvas.height / 2;
-    this.size = 55;
+    this.y = canvas.height / 2 + 50;
+    this.size = 70;
     this.hunger = 100;
     this.mood = 100;
     this.state = 'idle';
