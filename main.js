@@ -14,7 +14,8 @@ function createWindow() {
     x: 0,
     y: 0,
     frame: false,
-    transparent: true,
+    transparent: false,
+    backgroundColor: '#F0F0F0',
     alwaysOnTop: true,
     resizable: true,
     webPreferences: {
