@@ -1,9 +1,16 @@
 const canvas = document.getElementById('petCanvas');
-canvas.width = 180;
-canvas.height = 220;
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
 const pet = new Pet(canvas);
 const STATE_VERSION = 1;
+
+window.addEventListener('resize', () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  pet.canvas = canvas;
+  pet.ctx = canvas.getContext('2d');
+});
 
 let statusTimeout = null;
 let isDragging = false;

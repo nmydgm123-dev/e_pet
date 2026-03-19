@@ -4,9 +4,15 @@ const path = require('path');
 let mainWindow;
 
 function createWindow() {
+  const { screen } = require('electron');
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const { width, height } = primaryDisplay.workAreaSize;
+  
   mainWindow = new BrowserWindow({
-    width: 180,
-    height: 220,
+    width: Math.floor(width * 0.6),
+    height: Math.floor(height * 0.8),
+    x: Math.floor(width * 0.2),
+    y: Math.floor(height * 0.1),
     frame: false,
     transparent: true,
     alwaysOnTop: true,
