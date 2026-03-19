@@ -160,54 +160,88 @@ class Pet {
     }
     
     if (this.showStatus) {
-      const boxWidth = 100;
-      const boxHeight = 65;
-      const boxX = (this.canvas.width - boxWidth) / 2;
-      const boxY = this.canvas.height - boxHeight - 8;
+      const boxWidth = 90;
+      const boxHeight = 80;
+      const padding = 15;
+      
+      let boxX, boxY;
+      if (this.x + this.size + boxWidth + padding < this.canvas.width) {
+        boxX = this.x + this.size + padding;
+      } else if (this.x - this.size - boxWidth - padding > 0) {
+        boxX = this.x - this.size - boxWidth - padding;
+      } else {
+        boxX = this.x - boxWidth / 2;
+      }
+      
+      if (this.y + boxHeight / 2 < this.canvas.height - 60) {
+        boxY = this.y - boxHeight / 2;
+      } else {
+        boxY = this.canvas.height - boxHeight - 80;
+      }
       
       this.ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+      this.ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+      this.ctx.shadowBlur = 10;
+      this.ctx.shadowOffsetX = 2;
+      this.ctx.shadowOffsetY = 2;
       this.ctx.beginPath();
-      this.ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 10);
+      this.ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 12);
       this.ctx.fill();
+      this.ctx.shadowColor = 'transparent';
+      this.ctx.shadowBlur = 0;
+      this.ctx.shadowOffsetX = 0;
+      this.ctx.shadowOffsetY = 0;
       
       this.ctx.strokeStyle = '#FFB6C1';
       this.ctx.lineWidth = 2;
       this.ctx.beginPath();
-      this.ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 10);
+      this.ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 12);
       this.ctx.stroke();
       
-      const barWidth = 70;
-      const barHeight = 10;
+      const barWidth = 60;
+      const barHeight = 8;
       const barX = boxX + 12;
+      const iconSize = 14;
+      
+      this.ctx.fillStyle = '#FF6B9D';
+      this.ctx.font = '16px Arial';
+      this.ctx.fillText('🍖', barX, boxY + 22);
+      this.ctx.fillText('❤️', barX, boxY + 50);
       
       this.ctx.fillStyle = '#333';
-      this.ctx.font = 'bold 12px -apple-system, BlinkMacSystemFont, sans-serif';
-      this.ctx.fillText('饱腹', barX, boxY + 18);
+      this.ctx.font = 'bold 11px -apple-system, BlinkMacSystemFont, sans-serif';
+      this.ctx.fillText('饱腹', barX + iconSize + 5, boxY + 22);
+      this.ctx.fillText('心情', barX + iconSize + 5, boxY + 50);
+      
+      const barStartX = barX + iconSize + 35;
       
       this.ctx.fillStyle = '#EEE';
       this.ctx.beginPath();
-      this.ctx.roundRect(barX + 8, boxY + 22, barWidth, barHeight, 5);
+      this.ctx.roundRect(barStartX, boxY + 14, barWidth, barHeight, 4);
       this.ctx.fill();
       
       const hungerColor = this.hunger > 60 ? '#5CB85C' : this.hunger > 30 ? '#F0AD4E' : '#D9534F';
       this.ctx.fillStyle = hungerColor;
       this.ctx.beginPath();
-      this.ctx.roundRect(barX + 8, boxY + 22, barWidth * (this.hunger / 100), barHeight, 5);
+      this.ctx.roundRect(barStartX, boxY + 14, barWidth * (this.hunger / 100), barHeight, 4);
       this.ctx.fill();
       
       this.ctx.fillStyle = '#333';
-      this.ctx.fillText('心情', barX, boxY + 48);
+      this.ctx.fillText(`${Math.round(this.hunger)}%`, barStartX + barWidth + 5, boxY + 22);
       
       this.ctx.fillStyle = '#EEE';
       this.ctx.beginPath();
-      this.ctx.roundRect(barX + 8, boxY + 52, barWidth, barHeight, 5);
+      this.ctx.roundRect(barStartX, boxY + 42, barWidth, barHeight, 4);
       this.ctx.fill();
       
       const moodColor = this.mood > 60 ? '#5CB85C' : this.mood > 30 ? '#F0AD4E' : '#D9534F';
       this.ctx.fillStyle = moodColor;
       this.ctx.beginPath();
-      this.ctx.roundRect(barX + 8, boxY + 52, barWidth * (this.mood / 100), barHeight, 5);
+      this.ctx.roundRect(barStartX, boxY + 42, barWidth * (this.mood / 100), barHeight, 4);
       this.ctx.fill();
+      
+      this.ctx.fillStyle = '#333';
+      this.ctx.fillText(`${Math.round(this.mood)}%`, barStartX + barWidth + 5, boxY + 50);
     }
   }
 
