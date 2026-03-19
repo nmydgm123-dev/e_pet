@@ -4,11 +4,10 @@ class Pet {
     this.ctx = canvas.getContext('2d');
     this.x = canvas.width / 2;
     this.y = canvas.height / 2;
-    this.size = 50;
+    this.size = 45;
     this.hunger = 100;
     this.mood = 100;
     this.state = 'idle';
-    this.direction = 1;
     this.animationFrame = 0;
     this.showStatus = false;
     this.bounceAnimation = 0;
@@ -40,107 +39,70 @@ class Pet {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     
     const bounce = this.bounceAnimation > 0 ? Math.sin(this.bounceAnimation * 0.3) * 5 : 0;
-    const breathe = Math.sin(this.animationFrame * 0.05) * 1.5;
     const baseY = this.y + bounce;
-    const currentSize = this.size + breathe;
     
-    this.ctx.fillStyle = '#FFDDE5';
+    this.ctx.fillStyle = '#FFE4E1';
     this.ctx.beginPath();
-    this.ctx.arc(this.x, baseY, currentSize, 0, Math.PI * 2);
-    this.ctx.fill();
-    
-    this.ctx.fillStyle = '#FF85A1';
-    this.ctx.beginPath();
-    this.ctx.ellipse(this.x - currentSize * 0.5, baseY - currentSize * 0.6, currentSize * 0.25, currentSize * 0.35, -0.3, 0, Math.PI * 2);
-    this.ctx.fill();
-    this.ctx.beginPath();
-    this.ctx.ellipse(this.x + currentSize * 0.5, baseY - currentSize * 0.6, currentSize * 0.25, currentSize * 0.35, 0.3, 0, Math.PI * 2);
+    this.ctx.arc(this.x, baseY, this.size, 0, Math.PI * 2);
     this.ctx.fill();
     
-    this.ctx.fillStyle = '#FFB6C1';
+    this.ctx.fillStyle = '#FFF5F5';
     this.ctx.beginPath();
-    this.ctx.ellipse(this.x - currentSize * 0.5, baseY - currentSize * 0.6, currentSize * 0.12, currentSize * 0.2, -0.3, 0, Math.PI * 2);
-    this.ctx.fill();
-    this.ctx.beginPath();
-    this.ctx.ellipse(this.x + currentSize * 0.5, baseY - currentSize * 0.6, currentSize * 0.12, currentSize * 0.2, 0.3, 0, Math.PI * 2);
+    this.ctx.arc(this.x, baseY, this.size, Math.PI * 1.2, Math.PI * 1.8);
     this.ctx.fill();
     
     const blink = this.animationFrame % 200 > 195;
     
-    if (blink) {
-      this.ctx.strokeStyle = '#4A4A4A';
-      this.ctx.lineWidth = 3;
-      this.ctx.lineCap = 'round';
+    if (blink || this.state === 'sleeping') {
+      this.ctx.fillStyle = '#333';
       this.ctx.beginPath();
-      this.ctx.moveTo(this.x - currentSize * 0.35, baseY);
-      this.ctx.lineTo(this.x - currentSize * 0.1, baseY);
-      this.ctx.stroke();
-      this.ctx.beginPath();
-      this.ctx.moveTo(this.x + currentSize * 0.1, baseY);
-      this.ctx.lineTo(this.x + currentSize * 0.35, baseY);
-      this.ctx.stroke();
-    } else {
-      this.ctx.fillStyle = '#4A4A4A';
-      this.ctx.beginPath();
-      this.ctx.arc(this.x - currentSize * 0.22, baseY, currentSize * 0.18, 0, Math.PI * 2);
+      this.ctx.ellipse(this.x - 12, baseY - 5, 8, 3, 0, 0, Math.PI * 2);
       this.ctx.fill();
       this.ctx.beginPath();
-      this.ctx.arc(this.x + currentSize * 0.22, baseY, currentSize * 0.18, 0, Math.PI * 2);
+      this.ctx.ellipse(this.x + 12, baseY - 5, 8, 3, 0, 0, Math.PI * 2);
+      this.ctx.fill();
+    } else {
+      this.ctx.fillStyle = '#333';
+      this.ctx.beginPath();
+      this.ctx.arc(this.x - 12, baseY - 5, 6, 0, Math.PI * 2);
+      this.ctx.fill();
+      this.ctx.beginPath();
+      this.ctx.arc(this.x + 12, baseY - 5, 6, 0, Math.PI * 2);
       this.ctx.fill();
       
       this.ctx.fillStyle = '#FFF';
       this.ctx.beginPath();
-      this.ctx.arc(this.x - currentSize * 0.18, baseY - currentSize * 0.08, currentSize * 0.07, 0, Math.PI * 2);
+      this.ctx.arc(this.x - 10, baseY - 7, 2, 0, Math.PI * 2);
       this.ctx.fill();
       this.ctx.beginPath();
-      this.ctx.arc(this.x + currentSize * 0.26, baseY - currentSize * 0.08, currentSize * 0.07, 0, Math.PI * 2);
+      this.ctx.arc(this.x + 14, baseY - 7, 2, 0, Math.PI * 2);
       this.ctx.fill();
     }
     
-    this.ctx.fillStyle = '#FFB6C1';
-    this.ctx.beginPath();
-    this.ctx.ellipse(this.x - currentSize * 0.45, baseY + currentSize * 0.15, currentSize * 0.12, currentSize * 0.08, 0, 0, Math.PI * 2);
-    this.ctx.fill();
-    this.ctx.beginPath();
-    this.ctx.ellipse(this.x + currentSize * 0.45, baseY + currentSize * 0.15, currentSize * 0.12, currentSize * 0.08, 0, 0, Math.PI * 2);
-    this.ctx.fill();
-    
-    this.ctx.strokeStyle = '#666';
-    this.ctx.lineWidth = 2.5;
-    this.ctx.lineCap = 'round';
-    
-    if (this.state === 'sleeping') {
+    this.ctx.strokeStyle = '#FF9999';
+    this.ctx.lineWidth = 2;
+    if (this.mood < 30) {
       this.ctx.beginPath();
-      this.ctx.moveTo(this.x - currentSize * 0.15, baseY + currentSize * 0.35);
-      this.ctx.lineTo(this.x + currentSize * 0.15, baseY + currentSize * 0.35);
-      this.ctx.stroke();
-    } else if (this.mood < 30) {
-      this.ctx.beginPath();
-      this.ctx.moveTo(this.x - currentSize * 0.12, baseY + currentSize * 0.4);
-      this.ctx.quadraticCurveTo(this.x, baseY + currentSize * 0.28, this.x + currentSize * 0.12, baseY + currentSize * 0.4);
+      this.ctx.arc(this.x, baseY + 18, 6, 0.2 * Math.PI, 0.8 * Math.PI);
       this.ctx.stroke();
     } else if (this.bounceAnimation > 0) {
       this.ctx.beginPath();
-      this.ctx.arc(this.x, baseY + currentSize * 0.25, currentSize * 0.18, 0, Math.PI);
+      this.ctx.arc(this.x, baseY + 12, 8, 0.1 * Math.PI, 0.9 * Math.PI);
       this.ctx.stroke();
     } else {
       this.ctx.beginPath();
-      this.ctx.arc(this.x, baseY + currentSize * 0.22, currentSize * 0.15, 0.1 * Math.PI, 0.9 * Math.PI);
+      this.ctx.arc(this.x, baseY + 10, 8, 0.1 * Math.PI, 0.9 * Math.PI);
       this.ctx.stroke();
     }
     
     if (this.loveAnimation > 0) {
-      for (let i = 0; i < 3; i++) {
-        const hx = this.x + (i - 1) * 25 + Math.sin(this.animationFrame * 0.15 + i) * 8;
-        const hy = baseY - currentSize - 20 - (30 - this.loveAnimation) * 1.2 - i * 15;
-        this.ctx.font = '18px Arial';
-        this.ctx.fillText('💗', hx - 9, hy);
-      }
+      this.ctx.font = '20px Arial';
+      this.ctx.fillText('💕', this.x - 10, baseY - this.size - 10);
     }
     
     if (this.state === 'sleeping') {
-      this.ctx.font = 'bold 22px Arial';
-      this.ctx.fillText('💤', this.x + currentSize * 0.6, baseY - currentSize * 0.4);
+      this.ctx.font = '18px Arial';
+      this.ctx.fillText('💤', this.x + 25, baseY - 25);
     }
     
     if (this.showStatus) {
@@ -149,12 +111,12 @@ class Pet {
   }
   
   renderStatusBox(baseY) {
-    const boxWidth = 90;
-    const boxHeight = 65;
-    let boxX = this.x + this.size + 15;
+    const boxWidth = 85;
+    const boxHeight = 60;
+    let boxX = this.x + this.size + 12;
     
     if (boxX + boxWidth > this.canvas.width - 30) {
-      boxX = this.x - this.size - boxWidth - 15;
+      boxX = this.x - this.size - boxWidth - 12;
     }
     
     let boxY = baseY - boxHeight / 2;
@@ -165,44 +127,42 @@ class Pet {
     
     this.ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
     this.ctx.beginPath();
-    this.ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 12);
+    this.ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 10);
     this.ctx.fill();
     
-    this.ctx.strokeStyle = '#FFDDE5';
+    this.ctx.strokeStyle = '#FFE4E1';
     this.ctx.lineWidth = 2;
     this.ctx.beginPath();
-    this.ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 12);
+    this.ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 10);
     this.ctx.stroke();
     
-    const barX = boxX + 10;
+    const barX = boxX + 8;
     const barWidth = 60;
     const barHeight = 8;
     
-    this.ctx.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
-    this.ctx.fillStyle = '#555';
-    this.ctx.fillText('饱腹', barX, boxY + 18);
-    this.ctx.fillText('心情', barX, boxY + 45);
+    this.ctx.font = '10px system-ui';
+    this.ctx.fillStyle = '#666';
+    this.ctx.fillText('饱腹', barX, boxY + 16);
+    this.ctx.fillText('心情', barX, boxY + 40);
     
-    this.ctx.fillStyle = '#F0F0F0';
+    this.ctx.fillStyle = '#EEE';
     this.ctx.beginPath();
-    this.ctx.roundRect(barX, boxY + 21, barWidth, barHeight, 4);
+    this.ctx.roundRect(barX, boxY + 19, barWidth, barHeight, 4);
     this.ctx.fill();
     
-    const hColor = this.hunger > 60 ? '#7ED57E' : this.hunger > 30 ? '#FFB347' : '#FF7B7B';
-    this.ctx.fillStyle = hColor;
+    this.ctx.fillStyle = this.hunger > 60 ? '#7ED57E' : this.hunger > 30 ? '#FFB347' : '#FF7B7B';
     this.ctx.beginPath();
-    this.ctx.roundRect(barX, boxY + 21, barWidth * (this.hunger / 100), barHeight, 4);
+    this.ctx.roundRect(barX, boxY + 19, barWidth * (this.hunger / 100), barHeight, 4);
     this.ctx.fill();
     
-    this.ctx.fillStyle = '#F0F0F0';
+    this.ctx.fillStyle = '#EEE';
     this.ctx.beginPath();
-    this.ctx.roundRect(barX, boxY + 48, barWidth, barHeight, 4);
+    this.ctx.roundRect(barX, boxY + 43, barWidth, barHeight, 4);
     this.ctx.fill();
     
-    const mColor = this.mood > 60 ? '#7ED57E' : this.mood > 30 ? '#FFB347' : '#FF7B7B';
-    this.ctx.fillStyle = mColor;
+    this.ctx.fillStyle = this.mood > 60 ? '#7ED57E' : this.mood > 30 ? '#FFB347' : '#FF7B7B';
     this.ctx.beginPath();
-    this.ctx.roundRect(barX, boxY + 48, barWidth * (this.mood / 100), barHeight, 4);
+    this.ctx.roundRect(barX, boxY + 43, barWidth * (this.mood / 100), barHeight, 4);
     this.ctx.fill();
   }
 
