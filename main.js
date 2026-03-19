@@ -1,8 +1,10 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 
+let mainWindow;
+
 function createWindow() {
-  const win = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 200,
     height: 200,
     frame: false,
@@ -15,8 +17,14 @@ function createWindow() {
     }
   });
 
-  win.loadFile('index.html');
-  win.setAlwaysOnTop(true, 'floating');
+  mainWindow.loadFile('index.html');
+  mainWindow.setAlwaysOnTop(true, 'floating');
+
+  mainWindow.on('close', () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('save-state');
+    }
+  });
 }
 
 app.whenReady().then(createWindow);

@@ -1,3 +1,4 @@
+const { ipcRenderer } = require('electron');
 const Pet = require('./pet');
 
 const canvas = document.getElementById('petCanvas');
@@ -5,6 +6,7 @@ canvas.width = 200;
 canvas.height = 200;
 
 const pet = new Pet(canvas);
+const STATE_VERSION = 1;
 
 canvas.addEventListener('click', (e) => {
   const rect = canvas.getBoundingClientRect();
@@ -32,10 +34,15 @@ function gameLoop() {
 
 function saveState() {
   const state = {
+    version: STATE_VERSION,
     x: pet.x,
+    y: pet.y,
     hunger: pet.hunger,
     mood: pet.mood,
-    state: pet.state
+    state: pet.state,
+    direction: pet.direction,
+    animationFrame: pet.animationFrame,
+    lastSaveTime: Date.now()
   };
   localStorage.setItem('petState', JSON.stringify(state));
 }
@@ -45,23 +52,35 @@ function loadState() {
   if (saved) {
     try {
       const state = JSON.parse(saved);
-      pet.x = state.x || pet.x;
-      pet.hunger = state.hunger || pet.hunger;
-      pet.mood = state.mood || pet.mood;
-      pet.state = state.state || pet.state;
+      pet.x = state.x ?? pet.x;
+      pet.y = state.y ?? pet.y;
+      pet.hunger = state.hunger ?? pet.hunger;
+      pet.mood = state.mood ?? pet.mood;
+      pet.state = state.state ?? pet.state;
+      pet.direction = state.direction ?? pet.direction;
+      pet.animationFrame = state.animationFrame ?? pet.animationFrame;
+
+      if (state.lastSaveTime) {
+        const elapsedSeconds = (Date.now() - state.lastSaveTime) / 1000;
+        pet.hunger = Math.max(0, pet.hunger - elapsedSeconds * 0.01);
+        if (pet.hunger < 30) {
+          pet.mood = Math.max(0, pet.mood - elapsedSeconds * 0.02);
+        }
+      }
     } catch (e) {
       console.error('Failed to load state:', e);
     }
   }
 }
 
-// 启动时加载状态
 loadState();
 
-// 定时保存状态
-setInterval(saveState, 30000);
+const saveInterval = setInterval(saveState, 30000);
 
-// 关闭前保存
+ipcRenderer.on('save-state', () => {
+  saveState();
+});
+
 window.addEventListener('beforeunload', saveState);
 
 gameLoop();
