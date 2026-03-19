@@ -1,6 +1,7 @@
 const canvas = document.getElementById('petCanvas');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
+canvas.style.backgroundColor = 'rgba(255, 250, 255, 0.1)';
 
 const pet = new Pet(canvas);
 const STATE_VERSION = 1;
