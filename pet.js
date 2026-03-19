@@ -15,18 +15,28 @@ class Pet {
 
   update() {
     this.animationFrame++;
-
+    
     if (this.state === 'walking') {
       this.x += this.speed * this.direction;
-
+      
       if (this.x > this.canvas.width - this.size || this.x < this.size) {
         this.direction *= -1;
       }
-
+      
       this.hunger -= 0.01;
       if (this.hunger < 0) this.hunger = 0;
+      
+      // 随机进入睡眠
+      if (Math.random() < 0.001) {
+        this.state = 'sleeping';
+      }
+    } else if (this.state === 'sleeping') {
+      // 随机醒来
+      if (Math.random() < 0.005) {
+        this.state = 'walking';
+      }
     }
-
+    
     if (this.hunger < 30) {
       this.mood -= 0.02;
       if (this.mood < 0) this.mood = 0;
@@ -63,6 +73,16 @@ class Pet {
     this.ctx.beginPath();
     this.ctx.arc(this.x + eyeOffset, this.y + 5, 5, 0, Math.PI);
     this.ctx.stroke();
+
+    if (this.state === 'sleeping') {
+      this.ctx.fillStyle = '#000';
+      this.ctx.font = '20px Arial';
+      this.ctx.fillText('Z', this.x + 20, this.y - 20);
+      
+      if (this.animationFrame % 60 < 30) {
+        this.ctx.fillText('z', this.x + 30, this.y - 30);
+      }
+    }
 
     // 状态显示
     this.ctx.fillStyle = '#000';
