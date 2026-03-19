@@ -101,4 +101,4 @@ class Pet {
   }
 }
 
-module.exports = Pet;
+window.Pet = Pet;

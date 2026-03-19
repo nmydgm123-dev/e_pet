@@ -1,6 +1,3 @@
-const { ipcRenderer } = require('electron');
-const Pet = require('./pet');
-
 const canvas = document.getElementById('petCanvas');
 canvas.width = 200;
 canvas.height = 200;
@@ -9,6 +6,8 @@ const pet = new Pet(canvas);
 const STATE_VERSION = 1;
 
 canvas.addEventListener('click', (e) => {
+  if (pet.state === 'sleeping') return;
+
   const rect = canvas.getBoundingClientRect();
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
@@ -77,7 +76,7 @@ loadState();
 
 const saveInterval = setInterval(saveState, 30000);
 
-ipcRenderer.on('save-state', () => {
+window.electronAPI.onSaveState(() => {
   saveState();
 });
 
