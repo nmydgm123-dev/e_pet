@@ -9,13 +9,13 @@ function createWindow() {
   const { width, height } = primaryDisplay.workAreaSize;
   
   mainWindow = new BrowserWindow({
-    width: width,
+    width: Math.floor(width / 2),
     height: height,
     x: 0,
     y: 0,
     frame: false,
-    transparent: false,
-    backgroundColor: '#FFF0F5',
+    transparent: true,
+    backgroundColor: '#00000000',
     alwaysOnTop: true,
     resizable: true,
     webPreferences: {
