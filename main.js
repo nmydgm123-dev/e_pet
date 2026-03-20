@@ -14,8 +14,7 @@ function createWindow() {
     x: 0,
     y: 0,
     frame: false,
-    transparent: false,
-    backgroundColor: '#FFF0F5',
+    transparent: true,
     alwaysOnTop: true,
     webPreferences: {
       nodeIntegration: false,

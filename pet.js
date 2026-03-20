@@ -17,7 +17,6 @@ class Pet {
   }
 
   render() {
-    // 清空画布，用纯粉色背景
     this.ctx.fillStyle = '#FFF0F5';
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     
@@ -25,13 +24,13 @@ class Pet {
     const y = this.canvas.height / 2;
     const size = 60;
     
-    // 画大圆头
+    // 大圆头
     this.ctx.fillStyle = '#FFFFFF';
     this.ctx.beginPath();
     this.ctx.arc(x, y, size, 0, Math.PI * 2);
     this.ctx.fill();
     
-    // 画耳朵
+    // 耳朵
     this.ctx.fillStyle = '#FFFFFF';
     this.ctx.beginPath();
     this.ctx.moveTo(x - 50, y - 40);
@@ -59,8 +58,8 @@ class Pet {
     this.ctx.lineTo(x + 18, y - 48);
     this.ctx.fill();
     
-    // 画眼睛
-    this.ctx.fillStyle = '#333333';
+    // 粉色眼睛
+    this.ctx.fillStyle = '#FF9999';
     this.ctx.beginPath();
     this.ctx.arc(x - 20, y - 10, 12, 0, Math.PI * 2);
     this.ctx.fill();
@@ -71,13 +70,13 @@ class Pet {
     // 眼睛高光
     this.ctx.fillStyle = '#FFFFFF';
     this.ctx.beginPath();
-    this.ctx.arc(x - 23, y - 14, 4, 0, Math.PI * 2);
+    this.ctx.arc(x - 23, y - 14, 5, 0, Math.PI * 2);
     this.ctx.fill();
     this.ctx.beginPath();
-    this.ctx.arc(x + 17, y - 14, 4, 0, Math.PI * 2);
+    this.ctx.arc(x + 17, y - 14, 5, 0, Math.PI * 2);
     this.ctx.fill();
     
-    // 画腮红
+    // 腮红
     this.ctx.fillStyle = 'rgba(255, 150, 180, 0.5)';
     this.ctx.beginPath();
     this.ctx.arc(x - 40, y + 5, 10, 0, Math.PI * 2);
@@ -86,7 +85,7 @@ class Pet {
     this.ctx.arc(x + 40, y + 5, 10, 0, Math.PI * 2);
     this.ctx.fill();
     
-    // 画鼻子
+    // 粉色鼻子
     this.ctx.fillStyle = '#FFB6C1';
     this.ctx.beginPath();
     this.ctx.moveTo(x, y + 10);
@@ -94,16 +93,16 @@ class Pet {
     this.ctx.lineTo(x + 8, y + 20);
     this.ctx.fill();
     
-    // 画嘴巴
-    this.ctx.strokeStyle = '#FF9999';
+    // 粉色嘴巴
+    this.ctx.strokeStyle = '#FFCCCC';
     this.ctx.lineWidth = 3;
     this.ctx.beginPath();
     this.ctx.arc(x, y + 25, 15, 0.1 * Math.PI, 0.9 * Math.PI);
     this.ctx.stroke();
     
-    // 画胡须
-    this.ctx.strokeStyle = '#CCCCCC';
-    this.ctx.lineWidth = 1;
+    // 粉色胡须
+    this.ctx.strokeStyle = '#FFD0D0';
+    this.ctx.lineWidth = 1.5;
     this.ctx.beginPath();
     this.ctx.moveTo(x - 15, y + 15);
     this.ctx.lineTo(x - 60, y + 10);
