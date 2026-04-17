@@ -83,53 +83,70 @@ class Pet {
   }
 
   render() {
-    // 清空画布
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    
     const d = this.direction;
-    const ex = d * 3;
-    
-    // 身体 - 深粉色
-    this.ctx.fillStyle = '#FF1493';
+    const ex = d * 3; // 视线偏移
+
+    // 1. 身体（从圆形改为圆角更好的椭圆）
+    this.ctx.fillStyle = '#FFFFFF'; // 白色主色
     this.ctx.beginPath();
-    this.ctx.arc(this.x, this.y, this.bodyRadius, 0, Math.PI * 2);
+    this.ctx.ellipse(this.x, this.y + 5, 32, 28, 0, 0, Math.PI * 2);
     this.ctx.fill();
-    
-    // 耳朵
-    this.ctx.fillStyle = '#FF1493';
+    // 添加一点淡粉色腮红
+    this.ctx.fillStyle = 'rgba(255, 182, 193, 0.4)';
     this.ctx.beginPath();
-    this.ctx.moveTo(this.x - 20, this.y - 25);
-    this.ctx.lineTo(this.x - 25, this.y - 45);
-    this.ctx.lineTo(this.x - 8, this.y - 25);
+    this.ctx.arc(this.x - 20, this.y + 5, 8, 0, Math.PI * 2);
+    this.ctx.arc(this.x + 20, this.y + 5, 8, 0, Math.PI * 2);
     this.ctx.fill();
-    
-    this.ctx.beginPath();
-    this.ctx.moveTo(this.x + 8, this.y - 25);
-    this.ctx.lineTo(this.x + 25, this.y - 45);
-    this.ctx.lineTo(this.x + 20, this.y - 25);
-    this.ctx.fill();
-    
-    // 眼睛
-    this.ctx.fillStyle = '#000';
-    if (this.isBlinking) {
-      // 闭眼
-      this.ctx.fillRect(this.x - 13 + ex, this.y - 8, 10, 2);
-      this.ctx.fillRect(this.x + 3 + ex, this.y - 8, 10, 2);
-    } else {
-      // 睁眼
+
+    // 2. 耳朵（添加粉色内耳）
+    const drawEar = (x1, y1, x2, y2, x3, y3, inner) => {
+      this.ctx.fillStyle = '#FFFFFF';
       this.ctx.beginPath();
-      this.ctx.arc(this.x - 8 + ex, this.y - 5, 5, 0, Math.PI * 2);
+      this.ctx.moveTo(x1, y1); this.ctx.lineTo(x2, y2); this.ctx.lineTo(x3, y3);
+      this.ctx.fill();
+      this.ctx.fillStyle = '#FFC0CB';
+      this.ctx.beginPath();
+      this.ctx.moveTo(x1 + inner, y1 + 5); this.ctx.lineTo(x2, y2 + 5); this.ctx.lineTo(x3 - inner, y3);
+      this.ctx.fill();
+    };
+    drawEar(this.x - 25, this.y - 20, this.x - 30, this.y - 50, this.x - 5, this.y - 25, 5);
+    drawEar(this.x + 5, this.y - 25, this.x + 30, this.y - 50, this.x + 25, this.y - 20, -5);
+
+    // 3. 眼睛（更精致的圆眼）
+    this.ctx.fillStyle = '#4A4A4A';
+    if (this.isBlinking) {
+      this.ctx.fillRect(this.x - 15 + ex, this.y - 5, 10, 3);
+      this.ctx.fillRect(this.x + 5 + ex, this.y - 5, 10, 3);
+    } else {
+      this.ctx.beginPath();
+      this.ctx.arc(this.x - 10 + ex, this.y - 5, 6, 0, Math.PI * 2);
       this.ctx.fill();
       this.ctx.beginPath();
-      this.ctx.arc(this.x + 8 + ex, this.y - 5, 5, 0, Math.PI * 2);
+      this.ctx.arc(this.x + 10 + ex, this.y - 5, 6, 0, Math.PI * 2);
+      this.ctx.fill();
+      // 眼中高光
+      this.ctx.fillStyle = '#FFF';
+      this.ctx.beginPath();
+      this.ctx.arc(this.x - 12 + ex, this.y - 7, 2, 0, Math.PI * 2);
+      this.ctx.arc(this.x + 8 + ex, this.y - 7, 2, 0, Math.PI * 2);
       this.ctx.fill();
     }
-    
-    // 鼻子
-    this.ctx.fillStyle = '#FF69B4';
+
+    // 4. 小鼻子和嘴巴
+    this.ctx.fillStyle = '#FFB6C1';
     this.ctx.beginPath();
-    this.ctx.arc(this.x + ex, this.y + 2, 4, 0, Math.PI * 2);
+    this.ctx.ellipse(this.x + ex/2, this.y + 5, 4, 3, 0, 0, Math.PI * 2);
     this.ctx.fill();
+    
+    this.ctx.strokeStyle = '#FFB6C1';
+    this.ctx.lineWidth = 2;
+    this.ctx.beginPath();
+    this.ctx.moveTo(this.x + ex/2, this.y + 8);
+    this.ctx.quadraticCurveTo(this.x + 5 + ex/2, this.y + 12, this.x + 10 + ex/2, this.y + 8);
+    this.ctx.moveTo(this.x + ex/2, this.y + 8);
+    this.ctx.quadraticCurveTo(this.x - 5 + ex/2, this.y + 12, this.x - 10 + ex/2, this.y + 8);
+    this.ctx.stroke();
     
     // 睡觉 Zzz
     if (this.state === 'sleeping') {
