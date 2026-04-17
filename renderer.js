@@ -1,209 +1,130 @@
-const canvas = document.getElementById('petCanvas');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+const logFile = '/tmp/e_pet_render.log';
+const log = (msg) => {
+  try {
+    require('fs').appendFileSync(logFile, new Date().toISOString() + ' ' + msg + '\n');
+  } catch (e) {}
+  console.log(msg);
+};
 
-const pet = new Pet(canvas);
-const STATE_VERSION = 1;
+log('[renderer] start');
 
-window.addEventListener('resize', () => {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  pet.canvas = canvas;
-  pet.ctx = canvas.getContext('2d');
-});
-
-let statusTimeout = null;
-let isDragging = false;
-let isMouseInPetArea = false;
-
-function setWindowIgnoreMouse(ignore) {
-  if (window.electronAPI && window.electronAPI.setIgnoreMouse) {
-    window.electronAPI.setIgnoreMouse(ignore);
-  }
+let ipcRenderer;
+try {
+  ipcRenderer = require('electron').ipcRenderer;
+  log('[renderer] ipcRenderer OK');
+} catch (e) {
+  log('[renderer] IPC error: ' + e);
 }
 
-document.addEventListener('keydown', (e) => {
-  if (e.ctrlKey && e.code === 'Space') {
-    e.preventDefault();
-    const frozen = pet.toggleFreeze();
-    pet.showStatus = true;
-    if (statusTimeout) clearTimeout(statusTimeout);
-    statusTimeout = setTimeout(() => {
-      pet.showStatus = false;
-    }, 2000);
-  }
-});
+const canvas = document.getElementById('petCanvas');
+log('[renderer] canvas: ' + canvas);
+canvas.width = 200;
+canvas.height = 250;
 
-canvas.addEventListener('mouseenter', () => {
-  isMouseInPetArea = true;
-  setWindowIgnoreMouse(false);
-});
+const pet = new Pet(canvas);
+log('[renderer] pet created, x: ' + pet.x + ', y: ' + pet.y);
 
-canvas.addEventListener('mouseleave', (e) => {
-  const rect = canvas.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-  
-  const distance = Math.sqrt(
-    Math.pow(x - (pet.x + pet.moveX), 2) + 
-    Math.pow(y - (pet.y + pet.moveY), 2)
-  );
-  
-  if (distance >= pet.size + 20) {
-    isMouseInPetArea = false;
-    isDragging = false;
-    setWindowIgnoreMouse(true);
-    canvas.style.cursor = 'default';
-  }
-});
+const statusPanel = document.getElementById('statusPanel');
+const moodValue = document.getElementById('moodValue');
+const hungerValue = document.getElementById('hungerValue');
+log('[renderer] UI elements ready');
 
-canvas.addEventListener('mousemove', (e) => {
-  const rect = canvas.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-  
-  const petCenterX = pet.x + pet.moveX;
-  const petCenterY = pet.y + pet.moveY;
-  const distance = Math.sqrt(
-    Math.pow(x - petCenterX, 2) + 
-    Math.pow(y - petCenterY, 2)
-  );
-  
-  if (distance >= pet.size + 20) {
-    isMouseInPetArea = false;
-    setWindowIgnoreMouse(true);
-    canvas.style.cursor = 'default';
-    return;
-  }
-  
-  isMouseInPetArea = true;
-  setWindowIgnoreMouse(false);
-  
-  if (isDragging) {
-    pet.x = x - pet.moveX;
-    pet.y = y - pet.moveY;
-    canvas.style.cursor = 'grabbing';
-  } else {
-    canvas.style.cursor = distance < pet.size + 20 ? 'pointer' : 'default';
-  }
-});
+let isDragging = false;
+let dragStartX = 0;
+let dragStartY = 0;
+let hidePanelTimer = null;
 
-canvas.addEventListener('mousedown', (e) => {
-  if (!isMouseInPetArea || pet.isFrozen) return;
+function showPanel() {
+  log('[renderer] showPanel');
+  const state = pet.getState();
+  moodValue.textContent = Math.round(state.mood);
+  hungerValue.textContent = Math.round(state.hunger);
+  statusPanel.classList.remove('hidden');
   
-  const rect = canvas.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-  
-  const petCenterX = pet.x + pet.moveX;
-  const petCenterY = pet.y + pet.moveY;
-  const distance = Math.sqrt(
-    Math.pow(x - petCenterX, 2) + 
-    Math.pow(y - petCenterY, 2)
-  );
-  
-  if (distance < pet.size + 20) {
-    isDragging = true;
-    canvas.style.cursor = 'grabbing';
-  }
-});
-
-canvas.addEventListener('mouseup', () => {
-  if (isDragging) {
-    isDragging = false;
-    canvas.style.cursor = 'default';
-  }
-});
-
-canvas.addEventListener('click', (e) => {
-  if (!isMouseInPetArea || isDragging) return;
-  
-  const rect = canvas.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-  
-  const petCenterX = pet.x + pet.moveX;
-  const petCenterY = pet.y + pet.moveY;
-  const distance = Math.sqrt(
-    Math.pow(x - petCenterX, 2) + 
-    Math.pow(y - petCenterY, 2)
-  );
-  
-  if (distance < pet.size + 20) {
-    if (e.shiftKey) {
-      pet.feed();
-    } else if (e.altKey) {
-      pet.toggleSleep();
-    } else {
-      pet.pet();
-    }
-    
-    pet.showStatus = true;
-    
-    if (statusTimeout) clearTimeout(statusTimeout);
-    statusTimeout = setTimeout(() => {
-      pet.showStatus = false;
-    }, 4000);
-  }
-});
-
-setWindowIgnoreMouse(true);
-
-function gameLoop() {
-  pet.update();
-  pet.render();
-  requestAnimationFrame(gameLoop);
+  if (hidePanelTimer) clearTimeout(hidePanelTimer);
+  hidePanelTimer = setTimeout(() => {
+    statusPanel.classList.add('hidden');
+  }, 3000);
 }
 
 function saveState() {
-  const state = {
-    version: STATE_VERSION,
-    x: pet.x,
-    y: pet.y,
-    hunger: pet.hunger,
-    mood: pet.mood,
-    state: pet.state,
-    animationFrame: pet.animationFrame,
-    isFrozen: pet.isFrozen,
-    lastSaveTime: Date.now()
-  };
-  localStorage.setItem('petState', JSON.stringify(state));
+  localStorage.setItem('petState', JSON.stringify(pet.getState()));
 }
 
 function loadState() {
   const saved = localStorage.getItem('petState');
   if (saved) {
     try {
-      const state = JSON.parse(saved);
-      pet.x = state.x ?? pet.x;
-      pet.y = state.y ?? pet.y;
-      pet.hunger = state.hunger ?? pet.hunger;
-      pet.mood = state.mood ?? pet.mood;
-      pet.state = state.state ?? pet.state;
-      pet.animationFrame = state.animationFrame ?? pet.animationFrame;
-      pet.isFrozen = state.isFrozen ?? false;
-
-      if (state.lastSaveTime) {
-        const elapsedSeconds = (Date.now() - state.lastSaveTime) / 1000;
-        pet.hunger = Math.max(0, pet.hunger - elapsedSeconds * 0.003);
-        if (pet.hunger < 30) {
-          pet.mood = Math.max(0, pet.mood - elapsedSeconds * 0.008);
-        }
-      }
+      pet.loadState(JSON.parse(saved));
     } catch (e) {
-      console.error('Failed to load state:', e);
+      log('[renderer] loadState error: ' + e);
     }
   }
 }
 
-loadState();
-
-const saveInterval = setInterval(saveState, 30000);
-
-window.electronAPI.onSaveState(() => {
-  saveState();
+canvas.addEventListener('mousedown', (e) => {
+  log('[renderer] mousedown');
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  log('[renderer] click ' + x + ',' + y + ' pet ' + pet.x + ',' + pet.y);
+  
+  if (pet.isPointInside(x, y)) {
+    log('[renderer] clicked on pet');
+    isDragging = true;
+    dragStartX = e.clientX;
+    dragStartY = e.clientY;
+  }
 });
 
+canvas.addEventListener('mousemove', (e) => {
+  if (isDragging) {
+    const deltaX = e.clientX - dragStartX;
+    const deltaY = e.clientY - dragStartY;
+    log('[renderer] move ' + deltaX + ',' + deltaY);
+    if (ipcRenderer) {
+      ipcRenderer.send('move-window', deltaX, deltaY);
+    }
+    dragStartX = e.clientX;
+    dragStartY = e.clientY;
+  }
+});
+
+canvas.addEventListener('mouseup', (e) => {
+  log('[renderer] mouseup');
+  if (isDragging) {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    if (pet.isPointInside(x, y)) {
+      log('[renderer] mouseup on pet, shiftKey: ' + e.shiftKey);
+      if (e.shiftKey) {
+        pet.feed();
+      } else {
+        pet.pet();
+      }
+      showPanel();
+    }
+    isDragging = false;
+  }
+});
+
+loadState();
+setInterval(saveState, 30000);
 window.addEventListener('beforeunload', saveState);
 
+let frameCount = 0;
+function gameLoop() {
+  frameCount++;
+  if (frameCount % 60 === 0) {
+    log('[renderer] gameLoop frame: ' + frameCount + ', x: ' + pet.x + ', state: ' + pet.state);
+  }
+  
+  pet.update();
+  pet.render();
+  requestAnimationFrame(gameLoop);
+}
+
+log('[renderer] starting gameLoop');
 gameLoop();

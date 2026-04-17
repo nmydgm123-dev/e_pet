@@ -2,105 +2,141 @@ class Pet {
   constructor(canvas) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
-    this.x = canvas.width / 2;
-    this.y = canvas.height / 2;
-    this.size = 40;
+    this.x = 100;
+    this.y = 125;
+    this.bodyRadius = 30;
+    this.earHeight = 15;
     this.hunger = 100;
     this.mood = 100;
-    this.state = 'idle';
-    this.animationFrame = 0;
-    this.moveX = 0;
-    this.moveY = 0;
-    this.isFrozen = false;
-    this.showStatus = false;
+    this.state = 'walking';
+    this.direction = 1;
+    this.frame = 0;
+    this.blinkTimer = 0;
+    this.isBlinking = false;
   }
 
   update() {
-    this.animationFrame++;
-    // 简单平滑移动，限制在屏幕左半区
-    if (!this.isFrozen) {
-      this.moveX += Math.sin(this.animationFrame * 0.04) * 0.6;
-      this.moveY += Math.cos(this.animationFrame * 0.03) * 0.3;
+    this.frame++;
+    
+    // 走动
+    if (this.state === 'walking') {
+      this.x += 0.5 * this.direction;
+      if (this.x > 170) { this.x = 170; this.direction = -1; }
+      if (this.x < 30) { this.x = 30; this.direction = 1; }
+      
+      // 随机进入睡眠
+      if (Math.random() < 0.002) {
+        this.state = 'sleeping';
+      }
+    }
+    
+    // 睡觉
+    if (this.state === 'sleeping') {
+      if (Math.random() < 0.005) {
+        this.state = 'walking';
+      }
+    }
+    
+    // 眨眼（每2-4秒一次）
+    this.blinkTimer++;
+    if (!this.isBlinking && this.blinkTimer > 120 + Math.random() * 120) {
+      this.isBlinking = true;
+      this.blinkTimer = 0;
+    }
+    if (this.isBlinking && this.frame % 6 === 0) {
+      this.isBlinking = false;
     }
   }
 
   render() {
+    // 清空画布
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-    // 允许在屏幕左半区移动
-    const leftLimit = this.size;
-    const rightLimit = this.canvas.width / 2 - this.size;
-    const displayX = Math.max(leftLimit, Math.min(this.canvas.width / 2 - this.size, (this.x + this.moveX)));
-    const displayY = Math.max(this.size, Math.min(this.canvas.height - this.size, (this.y + this.moveY)));
-
-    // 面部颜色/风格：正脸卡通，柔和马卡龙色
-    // 面部底色
-    this.ctx.fillStyle = '#FFB6C1';
+    
+    const d = this.direction;
+    const ex = d * 3;
+    
+    // 身体 - 深粉色
+    this.ctx.fillStyle = '#FF1493';
     this.ctx.beginPath();
-    this.ctx.arc(displayX, displayY, this.size, 0, Math.PI * 2);
-    this.ctx.fill();
-
-    // 眼睛（柔和、圆圆的）
-    this.ctx.fillStyle = '#3b3b3b';
-    this.ctx.beginPath();
-    this.ctx.arc(displayX - this.size * 0.25, displayY - this.size * 0.25, this.size * 0.18, 0, Math.PI * 2);
-    this.ctx.arc(displayX + this.size * 0.25, displayY - this.size * 0.25, this.size * 0.18, 0, Math.PI * 2);
+    this.ctx.arc(this.x, this.y, this.bodyRadius, 0, Math.PI * 2);
     this.ctx.fill();
     
-    // 高光
-    this.ctx.fillStyle = '#fff';
+    // 耳朵
+    this.ctx.fillStyle = '#FF1493';
     this.ctx.beginPath();
-    this.ctx.arc(displayX - this.size * 0.28, displayY - this.size * 0.28, this.size * 0.08, 0, Math.PI * 2);
-    this.ctx.arc(displayX + this.size * 0.18, displayY - this.size * 0.28, this.size * 0.08, 0, Math.PI * 2);
+    this.ctx.moveTo(this.x - 20, this.y - 25);
+    this.ctx.lineTo(this.x - 25, this.y - 45);
+    this.ctx.lineTo(this.x - 8, this.y - 25);
     this.ctx.fill();
-
-    // 微笑嘴巴
-    this.ctx.strokeStyle = '#c66';
-    this.ctx.lineWidth = 3;
+    
     this.ctx.beginPath();
-    this.ctx.arc(displayX, displayY + this.size * 0.25, this.size * 0.4, 0.2 * Math.PI, 0.8 * Math.PI);
-    this.ctx.stroke();
-
-    // 腮红（淡粉）
-    this.ctx.fillStyle = 'rgba(255, 105, 180, 0.25)';
-    this.ctx.beginPath();
-    this.ctx.arc(displayX - this.size * 0.5, displayY, this.size * 0.28, 0, Math.PI * 2);
+    this.ctx.moveTo(this.x + 8, this.y - 25);
+    this.ctx.lineTo(this.x + 25, this.y - 45);
+    this.ctx.lineTo(this.x + 20, this.y - 25);
     this.ctx.fill();
-    this.ctx.beginPath();
-    this.ctx.arc(displayX + this.size * 0.5, displayY, this.size * 0.28, 0, Math.PI * 2);
-    this.ctx.fill();
-
-    // 状态框（简易，短时显示）
-    if (this.showStatus) {
-      const boxW = 90, boxH = 50;
-      const boxX = displayX + this.size + 10;
-      const boxY = Math.max(20, displayY - boxH / 2);
-      this.ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-      this.ctx.strokeStyle = '#FFB6C1';
-      this.ctx.lineWidth = 2;
+    
+    // 眼睛
+    this.ctx.fillStyle = '#000';
+    if (this.isBlinking) {
+      // 闭眼
+      this.ctx.fillRect(this.x - 13 + ex, this.y - 8, 10, 2);
+      this.ctx.fillRect(this.x + 3 + ex, this.y - 8, 10, 2);
+    } else {
+      // 睁眼
       this.ctx.beginPath();
-      this.ctx.roundRect(boxX, boxY, boxW, boxH, 8);
+      this.ctx.arc(this.x - 8 + ex, this.y - 5, 5, 0, Math.PI * 2);
       this.ctx.fill();
-      this.ctx.stroke();
-      this.ctx.fillStyle = '#333';
-      this.ctx.font = '12px sans-serif';
-      this.ctx.fillText('状态', boxX + 8, boxY + 24);
+      this.ctx.beginPath();
+      this.ctx.arc(this.x + 8 + ex, this.y - 5, 5, 0, Math.PI * 2);
+      this.ctx.fill();
+    }
+    
+    // 鼻子
+    this.ctx.fillStyle = '#FF69B4';
+    this.ctx.beginPath();
+    this.ctx.arc(this.x + ex, this.y + 2, 4, 0, Math.PI * 2);
+    this.ctx.fill();
+    
+    // 睡觉 Zzz
+    if (this.state === 'sleeping') {
+      this.ctx.fillStyle = 'rgba(100,100,255,0.7)';
+      this.ctx.font = 'bold 14px Arial';
+      this.ctx.fillText('Z', this.x + 20, this.y - 35);
+      if (this.frame % 20 < 10) {
+        this.ctx.font = 'bold 10px Arial';
+        this.ctx.fillText('z', this.x + 30, this.y - 45);
+      }
     }
   }
 
   feed() {
-    this.hunger = Math.min(100, this.hunger + 15);
+    this.hunger = Math.min(100, this.hunger + 20);
     this.mood = Math.min(100, this.mood + 5);
   }
 
   pet() {
-    this.mood = Math.min(100, this.mood + 20);
-    this.showStatus = true;
-    if (this._statusTimer) clearTimeout(this._statusTimer);
-    this._statusTimer = setTimeout(() => { this.showStatus = false; }, 1500);
+    this.mood = Math.min(100, this.mood + 10);
   }
 
-  toggleSleep() { /* 只做演示，不强制睡眠状态 */ }
+  isPointInside(px, py) {
+    const dx = px - this.x;
+    const dy = py - this.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    return dist < this.bodyRadius + 10;
+  }
+
+  getState() {
+    return { x: this.x, hunger: this.hunger, mood: this.mood, state: this.state };
+  }
+
+  loadState(s) {
+    if (s.x !== undefined) this.x = s.x;
+    if (s.hunger !== undefined) this.hunger = s.hunger;
+    if (s.mood !== undefined) this.mood = s.mood;
+    if (s.state !== undefined) this.state = s.state;
+  }
 }
 
-window.Pet = Pet;
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = Pet;
+}

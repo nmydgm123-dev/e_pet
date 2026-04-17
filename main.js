@@ -1,57 +1,95 @@
+const fs = require('fs');
 const { app, BrowserWindow, ipcMain } = require('electron');
-const path = require('path');
 
-let mainWindow;
+const log = (msg) => {
+  fs.appendFileSync('/tmp/e_pet.log', new Date().toISOString() + ' ' + msg + '\n');
+};
+
+log('[main] entry point loaded');
+
+app.disableHardwareAcceleration();
+app.commandLine.appendSwitch('disable-gpu');
+app.commandLine.appendSwitch('disable-software-rasterizer');
+
+let mainWindow = null;
 
 function createWindow() {
-  const { screen } = require('electron');
-  const primaryDisplay = screen.getPrimaryDisplay();
-  const { width, height } = primaryDisplay.workAreaSize;
+  log('[main] createWindow start');
   
   mainWindow = new BrowserWindow({
-    width: Math.floor(width / 2),
-    height: height,
-    x: 0,
-    y: 0,
+    width: 200,
+    height: 250,
     frame: false,
     transparent: true,
-    backgroundColor: '#00000000',
     alwaysOnTop: true,
-    resizable: true,
+    resizable: false,
+    skipTaskbar: true,
+    hasShadow: false,
     webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      preload: path.join(__dirname, 'preload.js')
+      nodeIntegration: true,
+      contextIsolation: false
     }
   });
 
   mainWindow.loadFile('index.html');
-  mainWindow.setAlwaysOnTop(true, 'floating');
-  mainWindow.setIgnoreMouseEvents(true, { forward: true });
+  log('[main] loadFile initiated');
 
-  mainWindow.on('close', () => {
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('save-state');
+  mainWindow.once('ready-to-show', () => {
+    log('[main] window ready-to-show and shown');
+    mainWindow.show();
+  });
+
+  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDesc) => {
+    log('[main] failed to load: ' + errorCode + ' ' + errorDesc);
+  });
+
+  mainWindow.webContents.on('crashed', () => {
+    log('[main] renderer crashed');
+  });
+
+  mainWindow.webContents.on('before-input-event', (event, input) => {
+    if (input.key === 'd' && input.type === 'keyDown') {
+      mainWindow.webContents.toggleDevTools();
     }
   });
+
+  mainWindow.setIgnoreMouseEvents(true, { forward: true });
+  mainWindow.setAlwaysOnTop(true, 'floating', 1);
+  
+  mainWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
+    log('[console ' + level + '] ' + message + ' (' + sourceId + ':' + line + ')');
+  });
+  
+  log('[main] window created');
+
+  // 窗口关闭时清理 localStorage
+  mainWindow.on('closed', () => {
+    try {
+      require('electron').session.defaultSession.cookies.clear();
+    } catch(e) {}
+  });
 }
+
+ipcMain.on('set-ignore-mouse-events', (event, ignore) => {
+  log('[main] set-ignore-mouse-events ' + ignore);
+  if (mainWindow) {
+    mainWindow.setIgnoreMouseEvents(ignore, { forward: true });
+  }
+});
+
+ipcMain.on('move-window', (event, deltaX, deltaY) => {
+  if (mainWindow) {
+    const [x, y] = mainWindow.getPosition();
+    mainWindow.setPosition(x + deltaX, y + deltaY);
+  }
+});
 
 app.whenReady().then(createWindow);
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+  if (process.platform !== 'darwin') app.quit();
 });
 
 app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
-});
-
-ipcMain.on('set-ignore-mouse', (event, ignore) => {
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.setIgnoreMouseEvents(ignore, { forward: true });
-  }
+  if (BrowserWindow.getAllWindows().length === 0) createWindow();
 });

@@ -6,7 +6,17 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <canvas id="petCanvas"></canvas>
+  <canvas id="petCanvas" width="200" height="250"></canvas>
+  <div id="statusPanel" class="hidden">
+    <div class="status-item">
+      <span class="label">心情:</span>
+      <span id="moodValue">100</span>
+    </div>
+    <div class="status-item">
+      <span class="label">饥饿:</span>
+      <span id="hungerValue">100</span>
+    </div>
+  </div>
   <script src="pet.js"></script>
   <script src="renderer.js"></script>
 </body>
