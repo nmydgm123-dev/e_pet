@@ -32,7 +32,10 @@ log('[renderer] UI elements ready');
 let isDragging = false;
 let dragStartX = 0;
 let dragStartY = 0;
+let lastWindowX = null;
+let lastWindowY = null;
 let hidePanelTimer = null;
+let isBeingDragged = false;
 
 function showPanel() {
   log('[renderer] showPanel');
@@ -63,17 +66,18 @@ function loadState() {
 }
 
 canvas.addEventListener('mousedown', (e) => {
-  log('[renderer] mousedown');
   const rect = canvas.getBoundingClientRect();
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
-  log('[renderer] click ' + x + ',' + y + ' pet ' + pet.x + ',' + pet.y);
   
   if (pet.isPointInside(x, y)) {
-    log('[renderer] clicked on pet');
     isDragging = true;
+    isBeingDragged = true;
+    pet.setDragging(true);
     dragStartX = e.clientX;
     dragStartY = e.clientY;
+    lastWindowX = null;
+    lastWindowY = null;
   }
 });
 
@@ -81,32 +85,31 @@ canvas.addEventListener('mousemove', (e) => {
   if (isDragging) {
     const deltaX = e.clientX - dragStartX;
     const deltaY = e.clientY - dragStartY;
-    log('[renderer] move ' + deltaX + ',' + deltaY);
     if (ipcRenderer) {
       ipcRenderer.send('move-window', deltaX, deltaY);
     }
-    dragStartX = e.clientX;
-    dragStartY = e.clientY;
   }
 });
 
 canvas.addEventListener('mouseup', (e) => {
-  log('[renderer] mouseup');
   if (isDragging) {
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     
     if (pet.isPointInside(x, y)) {
-      log('[renderer] mouseup on pet, shiftKey: ' + e.shiftKey);
       if (e.shiftKey) {
         pet.feed();
+        pet.showFeedEffect();
       } else {
         pet.pet();
+        pet.showPetEffect();
       }
       showPanel();
     }
     isDragging = false;
+    isBeingDragged = false;
+    pet.setDragging(false);
   }
 });
 

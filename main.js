@@ -53,7 +53,8 @@ function createWindow() {
     }
   });
 
-  mainWindow.setIgnoreMouseEvents(true, { forward: true });
+  // 不再设置鼠标穿透，始终接收鼠标事件
+  // mainWindow.setIgnoreMouseEvents(true, { forward: true });
   mainWindow.setAlwaysOnTop(true, 'floating', 1);
   
   mainWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
@@ -62,7 +63,6 @@ function createWindow() {
   
   log('[main] window created');
 
-  // 窗口关闭时清理 localStorage
   mainWindow.on('closed', () => {
     try {
       require('electron').session.defaultSession.cookies.clear();
@@ -71,9 +71,10 @@ function createWindow() {
 }
 
 ipcMain.on('set-ignore-mouse-events', (event, ignore) => {
-  log('[main] set-ignore-mouse-events ' + ignore);
+  log('[main] set-ignore-mouse-events ' + ignore + ' (received from renderer)');
   if (mainWindow) {
     mainWindow.setIgnoreMouseEvents(ignore, { forward: true });
+    log('[main] setIgnoreMouseEvents called with ' + ignore);
   }
 });
 
@@ -81,6 +82,7 @@ ipcMain.on('move-window', (event, deltaX, deltaY) => {
   if (mainWindow) {
     const [x, y] = mainWindow.getPosition();
     mainWindow.setPosition(x + deltaX, y + deltaY);
+    log('[main] moved window to ' + (x + deltaX) + ',' + (y + deltaY));
   }
 });
 

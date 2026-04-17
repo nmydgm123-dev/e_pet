@@ -13,10 +13,25 @@ class Pet {
     this.frame = 0;
     this.blinkTimer = 0;
     this.isBlinking = false;
+    this.isBeingDragged = false;
+    this.effect = null;
+    this.effectTimer = 0;
   }
 
   update() {
     this.frame++;
+    
+    if (this.effect) {
+      this.effectTimer--;
+      if (this.effectTimer <= 0) {
+        this.effect = null;
+      }
+    }
+    
+    // 拖动时暂停移动
+    if (this.isBeingDragged) {
+      return;
+    }
     
     // 走动
     if (this.state === 'walking') {
@@ -46,6 +61,25 @@ class Pet {
     if (this.isBlinking && this.frame % 6 === 0) {
       this.isBlinking = false;
     }
+  }
+  
+  setDragging(dragging) {
+    this.isBeingDragged = dragging;
+    if (dragging) {
+      this.state = 'idle';
+    } else {
+      this.state = 'walking';
+    }
+  }
+  
+  showPetEffect() {
+    this.effect = 'heart';
+    this.effectTimer = 30;
+  }
+  
+  showFeedEffect() {
+    this.effect = 'food';
+    this.effectTimer = 30;
   }
 
   render() {
@@ -106,6 +140,17 @@ class Pet {
         this.ctx.font = 'bold 10px Arial';
         this.ctx.fillText('z', this.x + 30, this.y - 45);
       }
+    }
+    
+    // 特效
+    if (this.effect === 'heart') {
+      this.ctx.fillStyle = 'rgba(255, 50, 50, ' + (this.effectTimer / 30) + ')';
+      this.ctx.font = 'bold 16px Arial';
+      this.ctx.fillText('❤', this.x - 8, this.y - 35);
+    } else if (this.effect === 'food') {
+      this.ctx.fillStyle = 'rgba(255, 165, 0, ' + (this.effectTimer / 30) + ')';
+      this.ctx.font = 'bold 16px Arial';
+      this.ctx.fillText('🍗', this.x - 8, this.y - 35);
     }
   }
 
