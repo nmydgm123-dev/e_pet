@@ -84,90 +84,94 @@ class Pet {
 
   render() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    
+    // 动态奔跑与呼吸参数
+    const run = this.state === 'walking' ? Math.sin(this.frame * 0.3) * 3 : 0;
+    const breath = Math.sin(this.frame * 0.1) * 1.5;
     const d = this.direction;
     const ex = d * 3; // 视线偏移
 
-    // 1. 身体（从圆形改为圆角更好的椭圆）
-    this.ctx.fillStyle = '#FFFFFF'; // 白色主色
+    // 1. 身体（加入了呼吸动态）
+    this.ctx.fillStyle = '#FFFFFF';
     this.ctx.beginPath();
-    this.ctx.ellipse(this.x, this.y + 5, 32, 28, 0, 0, Math.PI * 2);
+    this.ctx.ellipse(this.x, this.y + 5 + run, 32 + breath, 28 + breath, 0, 0, Math.PI * 2);
     this.ctx.fill();
+    
     // 添加一点淡粉色腮红
     this.ctx.fillStyle = 'rgba(255, 182, 193, 0.4)';
     this.ctx.beginPath();
-    this.ctx.arc(this.x - 20, this.y + 5, 8, 0, Math.PI * 2);
-    this.ctx.arc(this.x + 20, this.y + 5, 8, 0, Math.PI * 2);
+    this.ctx.arc(this.x - 20, this.y + 5 + run, 8, 0, Math.PI * 2);
+    this.ctx.arc(this.x + 20, this.y + 5 + run, 8, 0, Math.PI * 2);
     this.ctx.fill();
 
-    // 2. 耳朵（添加粉色内耳）
+    // 2. 耳朵（加入了动态跑动起伏）
     const drawEar = (x1, y1, x2, y2, x3, y3, inner) => {
       this.ctx.fillStyle = '#FFFFFF';
       this.ctx.beginPath();
-      this.ctx.moveTo(x1, y1); this.ctx.lineTo(x2, y2); this.ctx.lineTo(x3, y3);
+      this.ctx.moveTo(x1, y1 + run); this.ctx.lineTo(x2, y2 + run); this.ctx.lineTo(x3, y3 + run);
       this.ctx.fill();
       this.ctx.fillStyle = '#FFC0CB';
       this.ctx.beginPath();
-      this.ctx.moveTo(x1 + inner, y1 + 5); this.ctx.lineTo(x2, y2 + 5); this.ctx.lineTo(x3 - inner, y3);
+      this.ctx.moveTo(x1 + inner, y1 + 5 + run); this.ctx.lineTo(x2, y2 + 5 + run); this.ctx.lineTo(x3 - inner, y3 + run);
       this.ctx.fill();
     };
     drawEar(this.x - 25, this.y - 20, this.x - 30, this.y - 50, this.x - 5, this.y - 25, 5);
     drawEar(this.x + 5, this.y - 25, this.x + 30, this.y - 50, this.x + 25, this.y - 20, -5);
 
-    // 3. 眼睛（更精致的圆眼）
+    // 3. 眼睛（更精致的圆眼，随奔跑位移）
     this.ctx.fillStyle = '#4A4A4A';
+    const eyeY = this.y - 5 + run;
     if (this.isBlinking) {
-      this.ctx.fillRect(this.x - 15 + ex, this.y - 5, 10, 3);
-      this.ctx.fillRect(this.x + 5 + ex, this.y - 5, 10, 3);
+      this.ctx.fillRect(this.x - 15 + ex, eyeY, 10, 3);
+      this.ctx.fillRect(this.x + 5 + ex, eyeY, 10, 3);
     } else {
       this.ctx.beginPath();
-      this.ctx.arc(this.x - 10 + ex, this.y - 5, 6, 0, Math.PI * 2);
-      this.ctx.fill();
-      this.ctx.beginPath();
-      this.ctx.arc(this.x + 10 + ex, this.y - 5, 6, 0, Math.PI * 2);
+      this.ctx.arc(this.x - 10 + ex, eyeY, 6, 0, Math.PI * 2);
+      this.ctx.arc(this.x + 10 + ex, eyeY, 6, 0, Math.PI * 2);
       this.ctx.fill();
       // 眼中高光
       this.ctx.fillStyle = '#FFF';
       this.ctx.beginPath();
-      this.ctx.arc(this.x - 12 + ex, this.y - 7, 2, 0, Math.PI * 2);
-      this.ctx.arc(this.x + 8 + ex, this.y - 7, 2, 0, Math.PI * 2);
+      this.ctx.arc(this.x - 12 + ex, eyeY - 2, 2, 0, Math.PI * 2);
+      this.ctx.arc(this.x + 8 + ex, eyeY - 2, 2, 0, Math.PI * 2);
       this.ctx.fill();
     }
 
     // 4. 小鼻子和嘴巴
     this.ctx.fillStyle = '#FFB6C1';
     this.ctx.beginPath();
-    this.ctx.ellipse(this.x + ex/2, this.y + 5, 4, 3, 0, 0, Math.PI * 2);
+    this.ctx.ellipse(this.x + ex/2, this.y + 5 + run, 4, 3, 0, 0, Math.PI * 2);
     this.ctx.fill();
     
     this.ctx.strokeStyle = '#FFB6C1';
     this.ctx.lineWidth = 2;
     this.ctx.beginPath();
-    this.ctx.moveTo(this.x + ex/2, this.y + 8);
-    this.ctx.quadraticCurveTo(this.x + 5 + ex/2, this.y + 12, this.x + 10 + ex/2, this.y + 8);
-    this.ctx.moveTo(this.x + ex/2, this.y + 8);
-    this.ctx.quadraticCurveTo(this.x - 5 + ex/2, this.y + 12, this.x - 10 + ex/2, this.y + 8);
+    this.ctx.moveTo(this.x + ex/2, this.y + 8 + run);
+    this.ctx.quadraticCurveTo(this.x + 5 + ex/2, this.y + 12 + run, this.x + 10 + ex/2, this.y + 8 + run);
+    this.ctx.moveTo(this.x + ex/2, this.y + 8 + run);
+    this.ctx.quadraticCurveTo(this.x - 5 + ex/2, this.y + 12 + run, this.x - 10 + ex/2, this.y + 8 + run);
     this.ctx.stroke();
     
-    // 睡觉 Zzz
+    // 5. 睡觉 Zzz
     if (this.state === 'sleeping') {
       this.ctx.fillStyle = 'rgba(100,100,255,0.7)';
       this.ctx.font = 'bold 14px Arial';
-      this.ctx.fillText('Z', this.x + 20, this.y - 35);
+      this.ctx.fillText('Z', this.x + 20, this.y - 35 + run);
       if (this.frame % 20 < 10) {
         this.ctx.font = 'bold 10px Arial';
-        this.ctx.fillText('z', this.x + 30, this.y - 45);
+        this.ctx.fillText('z', this.x + 30, this.y - 45 + run);
       }
     }
     
-    // 特效
+    // 6. 特效
     if (this.effect === 'heart') {
       this.ctx.fillStyle = 'rgba(255, 50, 50, ' + (this.effectTimer / 30) + ')';
       this.ctx.font = 'bold 16px Arial';
-      this.ctx.fillText('❤', this.x - 8, this.y - 35);
+      this.ctx.fillText('❤', this.x - 8, this.y - 35 + run);
     } else if (this.effect === 'food') {
       this.ctx.fillStyle = 'rgba(255, 165, 0, ' + (this.effectTimer / 30) + ')';
       this.ctx.font = 'bold 16px Arial';
-      this.ctx.fillText('🍗', this.x - 8, this.y - 35);
+      this.ctx.fillText('🍗', this.x - 8, this.y - 35 + run);
     }
   }
 
@@ -175,22 +179,22 @@ class Pet {
     this.hunger = Math.min(100, this.hunger + 20);
     this.mood = Math.min(100, this.mood + 5);
   }
-
+  
   pet() {
     this.mood = Math.min(100, this.mood + 10);
   }
-
+  
   isPointInside(px, py) {
     const dx = px - this.x;
     const dy = py - this.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
     return dist < this.bodyRadius + 10;
   }
-
+  
   getState() {
     return { x: this.x, hunger: this.hunger, mood: this.mood, state: this.state };
   }
-
+  
   loadState(s) {
     if (s.x !== undefined) this.x = s.x;
     if (s.hunger !== undefined) this.hunger = s.hunger;
